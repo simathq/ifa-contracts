@@ -1,0 +1,37 @@
+{
+  "manifest_version": 1,
+  "template_id": "example-module",
+  "template_version": 1,
+  "name": "Example Module",
+  "description": "REFERENCE module template — the copyable shape of an IFA module manifest. Copy this file, rename the template_id (immutable slug), and point emits[] at your own event type(s). A manifest is DATA, not code: it declares what the module is and which event types it may emit; the typed payload schemas live in the event_types registry, referenced by (event_type, event_type_version) — never embedded here. Must validate against contracts/module_manifest.schema.json. See docs/AUTHORING_A_MODULE.md.",
+  "taxonomy": {
+    "category": "example",
+    "task_category": "reference",
+    "task": "example_detection"
+  },
+  "emits": [
+    { "event_type": "example_detected", "event_type_version": 1 }
+  ],
+  "models": [
+    { "role": "detector", "architecture": "example-net", "input": "640x640" }
+  ],
+  "streams_required": [
+    { "role": "primary", "description": "example source camera" }
+  ],
+  "config_schema": {
+    "type": "object",
+    "description": "Per-instance config. Values live on the backend (module_instances.config) and are pulled by the edge producer via GET /v1/instance — tune them in the DB, not on the box.",
+    "properties": {
+      "min_confidence": {
+        "type": "number",
+        "default": 0.4,
+        "description": "Drop detections below this confidence before emitting."
+      },
+      "emit_interval_seconds": {
+        "type": "number",
+        "default": 5,
+        "description": "How often the reference producer emits an event."
+      }
+    }
+  }
+}

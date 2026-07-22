@@ -1,0 +1,25 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://simatlabs.com/ifa/event_types/label_misalignment_detected@1.json",
+  "title": "Label misalignment detected",
+  "description": "A product label deviates from its expected orientation beyond the configured threshold.",
+  "type": "object",
+  "required": ["angle_deg", "confidence"],
+  "properties": {
+    "angle_deg": {
+      "type": "number",
+      "description": "Measured label rotation from expected orientation, degrees. Sign = direction."
+    },
+    "confidence": { "type": "number", "minimum": 0, "maximum": 1 },
+    "product_id": { "type": "string" },
+    "variant_id": { "type": "string" },
+    "bbox": {
+      "type": "array",
+      "description": "[x1, y1, x2, y2] pixel coords in the source frame.",
+      "items": { "type": "number" },
+      "minItems": 4,
+      "maxItems": 4
+    }
+  },
+  "additionalProperties": false
+}

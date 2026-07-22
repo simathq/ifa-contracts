@@ -1,0 +1,21 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://simatlabs.com/ifa/event_types/cap_missing_detected@1.json",
+  "title": "Cap missing detected",
+  "description": "A unit passed the inspection point without a cap.",
+  "type": "object",
+  "required": ["confidence"],
+  "properties": {
+    "confidence": { "type": "number", "minimum": 0, "maximum": 1 },
+    "product_id": { "type": "string" },
+    "variant_id": { "type": "string" },
+    "bbox": {
+      "type": "array",
+      "description": "[x1, y1, x2, y2] pixel coords in the source frame.",
+      "items": { "type": "number" },
+      "minItems": 4,
+      "maxItems": 4
+    }
+  },
+  "additionalProperties": false
+}

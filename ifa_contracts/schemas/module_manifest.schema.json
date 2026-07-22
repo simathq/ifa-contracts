@@ -1,0 +1,83 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://simatlabs.com/ifa/module_manifest.schema.json",
+  "title": "IFA module manifest v1",
+  "description": "Catalog-level definition of a module template: what task it solves, which event types it emits, what models and streams it needs, and the schema of its per-instance config. Authored internally by SimatLabs; instances bind a manifest to a factory's cameras, zones and thresholds.",
+  "type": "object",
+  "required": [
+    "manifest_version",
+    "template_id",
+    "template_version",
+    "name",
+    "taxonomy",
+    "emits"
+  ],
+  "properties": {
+    "manifest_version": { "const": 1 },
+    "template_id": {
+      "type": "string",
+      "pattern": "^[a-z][a-z0-9-]*$",
+      "description": "Stable slug, e.g. 'bottle-qc'. Immutable once instances reference it."
+    },
+    "template_version": { "type": "integer", "minimum": 1 },
+    "name": { "type": "string" },
+    "description": { "type": "string" },
+    "taxonomy": {
+      "type": "object",
+      "description": "Catalog metadata only — nothing executable may depend on these values.",
+      "required": ["category", "task_category", "task"],
+      "properties": {
+        "category": { "type": "string" },
+        "task_category": { "type": "string" },
+        "task": { "type": "string" }
+      },
+      "additionalProperties": false
+    },
+    "emits": {
+      "type": "array",
+      "minItems": 1,
+      "items": {
+        "type": "object",
+        "required": ["event_type", "event_type_version"],
+        "properties": {
+          "event_type": { "type": "string", "pattern": "^[a-z][a-z0-9_]*$" },
+          "event_type_version": { "type": "integer", "minimum": 1 }
+        },
+        "additionalProperties": false
+      },
+      "description": "Event types this module may emit. Payload schemas live in the event_types registry, referenced by (event_type, event_type_version) — never embedded here."
+    },
+    "models": {
+      "type": "array",
+      "default": [],
+      "items": {
+        "type": "object",
+        "required": ["role", "architecture"],
+        "properties": {
+          "role": { "type": "string" },
+          "architecture": { "type": "string" },
+          "input": { "type": "string" }
+        },
+        "additionalProperties": false
+      }
+    },
+    "streams_required": {
+      "type": "array",
+      "default": [],
+      "items": {
+        "type": "object",
+        "required": ["role"],
+        "properties": {
+          "role": { "type": "string" },
+          "description": { "type": "string" }
+        },
+        "additionalProperties": false
+      }
+    },
+    "config_schema": {
+      "type": "object",
+      "description": "JSON Schema for the instance-level config (thresholds, zones, model weights refs)."
+    }
+  },
+  "additionalProperties": false
+}
