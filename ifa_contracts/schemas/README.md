@@ -1,10 +1,12 @@
 # IFA contracts
 
 Source of truth for the edge ↔ backend integration seam. Everything an edge box
-sends and the backend accepts is defined here. `ifa-edge` vendors a copy of this
-directory (manual copy for now); the backend seeds its `event_types` registry
-from `event_types/` at seed time and validates every ingested event against
-these schemas.
+sends and the backend accepts is defined here. **There is no vendored copy:**
+`ifa-backend` and `ifa-edge` both install this package (`-e ../ifa-contracts`)
+and validate against these same files. The backend seeds its `event_types`
+registry from `event_types/` during `make sync` and validates every ingested
+payload against the registry; the edge validates locally before sending, so
+contract drift fails on the box first.
 
 ## Files
 
