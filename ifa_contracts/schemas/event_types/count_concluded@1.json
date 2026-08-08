@@ -1,0 +1,62 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://simatlabs.com/ifa/event_types/count_concluded@1.json",
+  "title": "Count concluded",
+  "description": "A counting session ended and these are its totals. Emitted once per session, not per detection: a count only means something once the thing being counted has stopped arriving. A session is bounded by its source — a recording ends at EOF, a live stream ends after an idle period with nothing crossing. Deliberately unit-agnostic (packs, pallets, cartons, vehicles) so any counting module can emit it; `unit` names what was counted.",
+  "type": "object",
+  "required": ["net", "total_in", "total_out", "unit", "complete"],
+  "properties": {
+    "net": {
+      "type": "integer",
+      "description": "Signed net movement over the session: total_in - total_out. Negative means net outbound."
+    },
+    "total_in": {
+      "type": "integer",
+      "minimum": 0,
+      "description": "Units counted moving inbound (into the truck / past the gate)."
+    },
+    "total_out": {
+      "type": "integer",
+      "minimum": 0,
+      "description": "Units counted moving outbound. Non-zero usually means a correction or a mis-load being removed."
+    },
+    "unit": {
+      "type": "string",
+      "description": "What was counted, singular — e.g. 'pack', 'pallet', 'carton'."
+    },
+    "crossings": {
+      "type": "integer",
+      "minimum": 0,
+      "description": "Discrete crossing events behind the totals. Lower than total_in when units arrive in groups (one pallet crossing can carry 30 packs)."
+    },
+    "needs_review": {
+      "type": "integer",
+      "minimum": 0,
+      "description": "Crossings the counter flagged as low-confidence. A high ratio against `crossings` means the net should not be trusted unreviewed."
+    },
+    "session_started_at": {
+      "type": "string",
+      "format": "date-time",
+      "description": "When counting began. The envelope's occurred_at is the emit instant — always the END of the session — so the start is carried here."
+    },
+    "duration_seconds": {
+      "type": "number",
+      "minimum": 0,
+      "description": "Length of the counting session."
+    },
+    "complete": {
+      "type": "boolean",
+      "description": "False when the session was cut short (operator stop, stream lost) and the totals are partial."
+    },
+    "source_kind": {
+      "type": "string",
+      "enum": ["live", "recording"],
+      "description": "Whether the session ran against a live stream or a recorded file."
+    },
+    "breakdown": {
+      "type": "object",
+      "description": "Per-class detail (in/out/net by detected class). Detail only — nested objects are stored and displayed but cannot be filtered on in a flow, so every number worth automating on is a top-level scalar above."
+    }
+  },
+  "additionalProperties": false
+}
