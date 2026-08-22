@@ -4,7 +4,7 @@ build-backend = "setuptools.build_meta"
 
 [project]
 name = "ifa-contracts"
-version = "0.1.0"
+version = "0.2.0"
 description = "IFA_EVENT contract schemas (envelope, event types, module manifest) — single source of truth shared by ifa-backend and ifa-edge."
 requires-python = ">=3.10"
 dependencies = ["jsonschema>=4.23"]

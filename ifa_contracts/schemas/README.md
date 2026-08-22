@@ -2,8 +2,12 @@
 
 Source of truth for the edge ↔ backend integration seam. Everything an edge box
 sends and the backend accepts is defined here. **There is no vendored copy:**
-`ifa-backend` and `ifa-edge` both install this package (`-e ../ifa-contracts`)
-and validate against these same files. The backend seeds its `event_types`
+`ifa-backend` and `ifa-edge` both install this package — each pinning it by tag,
+because a cloud build clones one repo and has no sibling checkout — and validate
+against these same files. A consequence worth knowing before you add a file
+here: **a new event type does not exist for either service until this package is
+tagged and their venvs reinstall.** Until then `make sync-check` refuses the
+manifest that emits it. The backend seeds its `event_types`
 registry from `event_types/` during `make sync` and validates every ingested
 payload against the registry; the edge validates locally before sending, so
 contract drift fails on the box first.

@@ -1,0 +1,51 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://simatlabs.com/ifa/event_types/unit_inspected@1.json",
+  "title": "Unit inspected",
+  "description": "One manufactured unit finished inspection and got a verdict. Emitted per unit rather than per defect, deliberately: with an event for every unit inspected, `avg(is_defect)` over any window is the defect rate, and the same events give throughput. Suppressing the passes (a module config choice) leaves the defect count intact but removes the denominator, so the rate stops being computable. The verdict is a decision about a whole unit, voted over however many views the module got of it — not a single frame's opinion.",
+  "type": "object",
+  "required": ["verdict", "is_defect"],
+  "properties": {
+    "verdict": {
+      "type": "string",
+      "enum": ["OK", "DEFECT", "UNSURE"],
+      "description": "The decision for this unit. UNSURE means the unit was seen and counted but never successfully scored — it is not a pass, and it is not a defect; a line producing UNSURE verdicts is a line whose inspection is not working."
+    },
+    "is_defect": {
+      "type": "integer",
+      "minimum": 0,
+      "maximum": 1,
+      "description": "1 when verdict is DEFECT, else 0. Redundant with `verdict` on purpose: analytics offers count/sum/avg/min/max and no ratio aggregation, so a 0/1 field is what makes `avg` read out as the defect rate. UNSURE counts as 0 here — it is an inspection failure, not a product failure, and folding it into the defect rate would blame the line for a camera problem."
+    },
+    "worst_region": {
+      "type": "string",
+      "description": "Which inspected region scored furthest above its own threshold — the part of the unit that decided the verdict (e.g. 'cap', 'label'). Region names are defined per product by whoever set the module up, so this is free text, not an enum."
+    },
+    "worst_ratio": {
+      "type": "number",
+      "minimum": 0,
+      "description": "That region's score divided by its threshold. Above 1.0 is a defect by definition, and the size of the margin is how obvious the defect was — useful for filtering out marginal calls, or for spotting a threshold that has drifted."
+    },
+    "product": {
+      "type": "string",
+      "description": "Which trained product model produced this verdict. A line that runs more than one product needs this to compare like with like: thresholds belong to a product, so a defect rate mixed across products means nothing."
+    },
+    "views_scored": {
+      "type": "integer",
+      "minimum": 0,
+      "description": "How many views of this unit were scored before the verdict was voted. Low counts weaken the verdict — a unit scored once was not really voted on."
+    },
+    "regions": {
+      "type": "object",
+      "description": "Per-region detail: region name -> {score, threshold, ratio}. Detail only — nested objects are not filterable in automations and not chartable, by design. Kept open (no fixed properties) because regions are per-product and editable by the operator; pinning them here would mean a contract change every time someone adds one."
+    },
+    "bbox": {
+      "type": "array",
+      "description": "[x1, y1, x2, y2] pixel coords of the unit in the source frame. Detail only.",
+      "items": { "type": "number" },
+      "minItems": 4,
+      "maxItems": 4
+    }
+  },
+  "additionalProperties": false
+}
