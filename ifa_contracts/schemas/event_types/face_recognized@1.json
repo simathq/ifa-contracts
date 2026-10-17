@@ -1,0 +1,51 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://simatlabs.com/ifa/event_types/face_recognized@1.json",
+  "title": "Face recognized",
+  "description": "A face was seen at a monitoring point and matched (or failed to match) against the company's enrolled gallery. Emitted once per visit, not per frame: the producer holds a face for a few consecutive frames before deciding, and stays quiet about the same person for a cooldown afterwards. Matching happens on the box against the gallery it pulled from the backend, so the payload names the enrolled person, never carries the face itself. Deliberately purpose-agnostic: time attendance reads it, a restricted-area or visitor module could too.",
+  "type": "object",
+  "required": ["match", "similarity", "model"],
+  "properties": {
+    "match": {
+      "enum": ["known", "unknown"],
+      "description": "known: the best gallery match cleared the instance's threshold. unknown: a face was held long enough to decide and nobody in the gallery matched."
+    },
+    "person_ref": {
+      "type": "string",
+      "minLength": 1,
+      "description": "The enrolled person's id as the gallery gave it. Required when match is known, absent when unknown."
+    },
+    "similarity": {
+      "type": "number",
+      "minimum": -1,
+      "maximum": 1,
+      "description": "Cosine similarity of the best gallery match (the best one even when unknown, so thresholds can be tuned from history)."
+    },
+    "threshold": {
+      "type": "number",
+      "minimum": -1,
+      "maximum": 1,
+      "description": "The threshold the box compared against, so an event stays interpretable after the instance config changes."
+    },
+    "frames_held": {
+      "type": "integer",
+      "minimum": 1,
+      "description": "Consecutive frames the face was tracked before the decision."
+    },
+    "model": {
+      "type": "string",
+      "description": "Recognizer that produced the embedding, e.g. 'sface-2021dec'. Embeddings from different models are not comparable."
+    },
+    "bbox": {
+      "type": "array",
+      "description": "[x1, y1, x2, y2] pixel coords in the source frame.",
+      "items": { "type": "number" },
+      "minItems": 4,
+      "maxItems": 4
+    }
+  },
+  "if": { "properties": { "match": { "const": "known" } } },
+  "then": { "required": ["person_ref"] },
+  "else": { "not": { "required": ["person_ref"] } },
+  "additionalProperties": false
+}
