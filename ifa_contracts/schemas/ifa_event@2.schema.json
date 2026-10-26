@@ -1,0 +1,76 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://simatlabs.com/ifa/ifa_event@2.schema.json",
+  "title": "IFA_EVENT envelope v2",
+  "description": "Universal envelope for every event an IFA module emits. Version 2 names the instance's premises once and lists the sources the event came from, each with its area; version 1's factory-shaped location is gone. The payload is typed per event_type; its schema lives in the event_types registry, referenced by (event_type, event_type_version).",
+  "type": "object",
+  "required": [
+    "ifa_event_version",
+    "event_id",
+    "module_instance_id",
+    "event_type",
+    "event_type_version",
+    "occurred_at",
+    "premises",
+    "sources",
+    "payload"
+  ],
+  "properties": {
+    "ifa_event_version": { "const": 2 },
+    "event_id": { "type": "string", "format": "uuid" },
+    "module_instance_id": { "type": "string", "format": "uuid" },
+    "event_type": {
+      "type": "string",
+      "pattern": "^[a-z][a-z0-9_]*(\\.[a-z][a-z0-9_]*)*$",
+      "description": "Bare snake_case for module events; the dotted form reserves namespaces (platform.*) for non-module events."
+    },
+    "event_type_version": { "type": "integer", "minimum": 1 },
+    "occurred_at": { "type": "string", "format": "date-time" },
+    "severity": { "enum": ["info", "warning", "critical"] },
+    "premises": {
+      "type": "object",
+      "description": "The premises the module instance is on. Every source the event lists is on it too.",
+      "required": ["id", "name"],
+      "properties": {
+        "id": { "type": "string", "format": "uuid" },
+        "name": { "type": "string", "minLength": 1 }
+      },
+      "additionalProperties": false
+    },
+    "sources": {
+      "type": "array",
+      "minItems": 1,
+      "description": "The sources the event came from: each one bound to the emitting instance.",
+      "items": {
+        "type": "object",
+        "required": ["id", "area"],
+        "properties": {
+          "id": { "type": "string", "minLength": 1 },
+          "area": {
+            "type": "string",
+            "minLength": 1,
+            "description": "Where the source sits within its premises, in the tenant's own words. Free text; the platform never reads meaning from it."
+          },
+          "frame_ts": { "type": "string", "format": "date-time" }
+        },
+        "additionalProperties": false
+      }
+    },
+    "media": {
+      "type": "array",
+      "default": [],
+      "items": {
+        "type": "object",
+        "required": ["kind", "ref"],
+        "properties": {
+          "kind": { "enum": ["frame", "clip", "crop"] },
+          "ref": { "type": "string" },
+          "source_id": { "type": "string" }
+        },
+        "additionalProperties": false
+      }
+    },
+    "payload": { "type": "object" }
+  },
+  "additionalProperties": false
+}

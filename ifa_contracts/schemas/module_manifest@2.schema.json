@@ -1,0 +1,262 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://simatlabs.com/ifa/module_manifest@2.schema.json",
+  "title": "IFA module manifest v2",
+  "description": "Catalog-level definition of a module template: what task it solves, which event types it emits, what models it runs, the named inputs it reads, and the schema of its per-instance config. Authored internally by SimatLabs; an instance fills each input with bindings to its tenant's sources. Version 2 replaces streams_required with inputs.",
+  "type": "object",
+  "required": [
+    "manifest_version",
+    "template_id",
+    "template_version",
+    "name",
+    "taxonomy",
+    "emits"
+  ],
+  "properties": {
+    "manifest_version": {
+      "const": 2
+    },
+    "template_id": {
+      "type": "string",
+      "pattern": "^[a-z][a-z0-9-]*$",
+      "description": "Stable slug, e.g. 'bottle-qc'. Immutable once instances reference it."
+    },
+    "template_version": {
+      "type": "integer",
+      "minimum": 1
+    },
+    "name": {
+      "type": "string"
+    },
+    "description": {
+      "type": "string"
+    },
+    "taxonomy": {
+      "type": "object",
+      "description": "Catalog metadata only — nothing executable may depend on these values.",
+      "required": [
+        "category",
+        "task_category",
+        "task"
+      ],
+      "properties": {
+        "category": {
+          "type": "string"
+        },
+        "task_category": {
+          "type": "string"
+        },
+        "task": {
+          "type": "string"
+        }
+      },
+      "additionalProperties": false
+    },
+    "emits": {
+      "type": "array",
+      "minItems": 1,
+      "items": {
+        "type": "object",
+        "required": [
+          "event_type",
+          "event_type_version"
+        ],
+        "properties": {
+          "event_type": {
+            "type": "string",
+            "pattern": "^[a-z][a-z0-9_]*$"
+          },
+          "event_type_version": {
+            "type": "integer",
+            "minimum": 1
+          }
+        },
+        "additionalProperties": false
+      },
+      "description": "Event types this module may emit. Payload schemas live in the event_types registry, referenced by (event_type, event_type_version) — never embedded here."
+    },
+    "models": {
+      "type": "array",
+      "default": [],
+      "items": {
+        "type": "object",
+        "required": [
+          "role",
+          "architecture"
+        ],
+        "properties": {
+          "role": {
+            "type": "string"
+          },
+          "architecture": {
+            "type": "string"
+          },
+          "input": {
+            "type": "string"
+          }
+        },
+        "additionalProperties": false
+      }
+    },
+    "inputs": {
+      "type": "array",
+      "default": [],
+      "description": "The named inputs the module reads. Names are unique within a manifest.",
+      "items": {
+        "type": "object",
+        "required": [
+          "name",
+          "kind"
+        ],
+        "properties": {
+          "name": {
+            "type": "string",
+            "pattern": "^[a-z][a-z0-9_]*$",
+            "description": "Stable name of the input, e.g. 'entrance_cams'. A binding names the input it fills."
+          },
+          "kind": {
+            "enum": [
+              "video",
+              "data"
+            ],
+            "description": "video: a live feed or NVR playback. data: plain records (JSON documents, database rows, a POS log)."
+          },
+          "description": {
+            "type": "string"
+          },
+          "required": {
+            "type": "boolean",
+            "default": true,
+            "description": "A required input unfilled or disconnected stops the instance; an optional one that drops only raises a warning."
+          },
+          "min_sources": {
+            "type": "integer",
+            "minimum": 1,
+            "default": 1,
+            "description": "Fewest sources a filled input takes."
+          },
+          "max_sources": {
+            "type": "integer",
+            "minimum": 1,
+            "default": 1,
+            "description": "Most sources the input takes. Not below min_sources."
+          },
+          "fields": {
+            "type": "array",
+            "default": [],
+            "items": {
+              "type": "object",
+              "required": [
+                "name"
+              ],
+              "properties": {
+                "name": {
+                  "type": "string",
+                  "pattern": "^[a-z][a-z0-9_]*$"
+                },
+                "description": {
+                  "type": "string"
+                }
+              },
+              "additionalProperties": false
+            },
+            "minItems": 1,
+            "description": "Data inputs only: the fields the module reads from each record. The tenant maps their own columns onto these names when binding."
+          },
+          "geometry": {
+            "type": "object",
+            "description": "Video inputs only: the shapes the tenant draws on the bound source's frame. They are stored on the binding, not the source.",
+            "properties": {
+              "lines": {
+                "type": "array",
+                "default": [],
+                "items": {
+                  "type": "object",
+                  "required": [
+                    "name"
+                  ],
+                  "properties": {
+                    "name": {
+                      "type": "string",
+                      "pattern": "^[a-z][a-z0-9_]*$"
+                    },
+                    "description": {
+                      "type": "string"
+                    }
+                  },
+                  "additionalProperties": false
+                },
+                "description": "Named lines, each drawn with a direction, for counting what crosses."
+              },
+              "regions": {
+                "type": "array",
+                "default": [],
+                "items": {
+                  "type": "object",
+                  "required": [
+                    "name"
+                  ],
+                  "properties": {
+                    "name": {
+                      "type": "string",
+                      "pattern": "^[a-z][a-z0-9_]*$"
+                    },
+                    "description": {
+                      "type": "string"
+                    }
+                  },
+                  "additionalProperties": false
+                },
+                "description": "Named regions (polygons), for what is inside."
+              }
+            },
+            "additionalProperties": false
+          }
+        },
+        "additionalProperties": false,
+        "allOf": [
+          {
+            "if": {
+              "properties": {
+                "kind": {
+                  "const": "data"
+                }
+              }
+            },
+            "then": {
+              "required": [
+                "fields"
+              ],
+              "not": {
+                "required": [
+                  "geometry"
+                ]
+              }
+            }
+          },
+          {
+            "if": {
+              "properties": {
+                "kind": {
+                  "const": "video"
+                }
+              }
+            },
+            "then": {
+              "not": {
+                "required": [
+                  "fields"
+                ]
+              }
+            }
+          }
+        ]
+      }
+    },
+    "config_schema": {
+      "type": "object",
+      "description": "JSON Schema for the instance-level config (thresholds, zones, model weights refs)."
+    }
+  },
+  "additionalProperties": false
+}

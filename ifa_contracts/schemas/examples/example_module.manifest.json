@@ -1,9 +1,9 @@
 {
-  "manifest_version": 1,
+  "manifest_version": 2,
   "template_id": "example-module",
   "template_version": 1,
   "name": "Example Module",
-  "description": "REFERENCE module template — the copyable shape of an IFA module manifest. Copy this file, rename the template_id (immutable slug), and point emits[] at your own event type(s). A manifest is DATA, not code: it declares what the module is and which event types it may emit; the typed payload schemas live in the event_types registry, referenced by (event_type, event_type_version) — never embedded here. Must validate against contracts/module_manifest.schema.json. See docs/AUTHORING_A_MODULE.md.",
+  "description": "REFERENCE module template — the copyable shape of an IFA module manifest. Copy this file, rename the template_id (immutable slug), and point emits[] at your own event type(s). A manifest is DATA, not code: it declares what the module is and which event types it may emit; the typed payload schemas live in the event_types registry, referenced by (event_type, event_type_version) — never embedded here. Must validate against module_manifest@2.schema.json. See docs/AUTHORING_A_MODULE.md.",
   "taxonomy": {
     "category": "example",
     "task_category": "reference",
@@ -15,8 +15,30 @@
   "models": [
     { "role": "detector", "architecture": "example-net", "input": "640x640" }
   ],
-  "streams_required": [
-    { "role": "primary", "description": "example source camera" }
+  "inputs": [
+    {
+      "name": "camera",
+      "kind": "video",
+      "description": "Example source camera.",
+      "required": true,
+      "min_sources": 1,
+      "max_sources": 1,
+      "geometry": {
+        "regions": [
+          { "name": "watch_area", "description": "Detections outside it are ignored." }
+        ]
+      }
+    },
+    {
+      "name": "shift_log",
+      "kind": "data",
+      "description": "Example data input: who is on shift, so events can name them.",
+      "required": false,
+      "fields": [
+        { "name": "operator", "description": "Who is on shift." },
+        { "name": "started_at", "description": "When the shift began." }
+      ]
+    }
   ],
   "config_schema": {
     "type": "object",
